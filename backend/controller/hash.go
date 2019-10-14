@@ -74,7 +74,7 @@ func sendSigned(incoming *models.SignedTx, writer http.ResponseWriter) {
 
 }
 
-func getPendingTransaction(address string) {
+func getPendingTransaction(address string) uint64 {
 	var params = []interface{}{address, "latest"}
 	// params = append(params, "0x0")
 	payload := &Payload{
@@ -107,10 +107,7 @@ func getPendingTransaction(address string) {
 	if parsedErr != nil {
 		fmt.Print(parsedErr)
 	}
-	fmt.Println("THE TRAMSACTION COUNT IS")
-	fmt.Println(parsedResponse)
-	fmt.Println(parsedResponse.Result)
-
+	return hextodec(parsedResponse.Result)
 }
 func getHash(payload *models.Payload, writer http.ResponseWriter) string {
 	h := sha256.New()
@@ -123,9 +120,9 @@ func getHash(payload *models.Payload, writer http.ResponseWriter) string {
 }
 
 func txBuilder(hash string, method string, writer http.ResponseWriter) *models.Tx {
-	getPendingTransaction("0xE9C0614F054FAd022e989034c00b136E507e162b")
+	nonce := getPendingTransaction("0xE9C0614F054FAd022e989034c00b136E507e162b")
 	params := &models.Param{
-		Nonce:    200,
+		Nonce:    nonce,
 		From:     "0xE9C0614F054FAd022e989034c00b136E507e162b",
 		Gas:      100000,
 		GasPrice: 50000000000,
@@ -139,4 +136,10 @@ func txBuilder(hash string, method string, writer http.ResponseWriter) *models.T
 		ID:      1,
 	}
 	return tx
+}
+
+func hextodec(hex string) uint64 {
+	ru := fmt.Sprint(hex[2:])
+	x, _ := strconv.ParseInt(ru, 16, 64)
+	return uint64(x)
 }
