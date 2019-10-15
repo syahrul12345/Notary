@@ -66,7 +66,7 @@ export default {
   methods: {
     verify() {
       console.log(this.files[0])
-      axios.post("http://localhost:8000/api/uploadHash",{
+      axios.post("/api/uploadHash",{
         Name:this.files[0].name,
         LastModified: this.files[0].LastModified,
         Size: this.files[0].size,

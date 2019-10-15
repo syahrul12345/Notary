@@ -9,8 +9,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
+)
+
+var (
+	ethRPC string = "https://ropsten.infura.io/v3/2a3f078d3755444b8777a0204e5f694a"
 )
 
 //Payload for other functions
@@ -42,7 +45,7 @@ func sendSigned(incoming *models.SignedTx, writer http.ResponseWriter) {
 		fmt.Println(err)
 		utils.Respond(writer, utils.Message(false, "Failed to decode request payload to geth node"))
 	}
-	response, responseErr := http.Post(os.Getenv("INFURA"), "application/json", bytes.NewBuffer(requestBody))
+	response, responseErr := http.Post(ethRPC, "application/json", bytes.NewBuffer(requestBody))
 	if responseErr != nil {
 		fmt.Println(responseErr)
 	}
@@ -88,7 +91,7 @@ func getPendingTransaction(address string) uint64 {
 	if err != nil {
 		fmt.Println(err)
 	}
-	response, responseErr := http.Post("https://ropsten.infura.io/v3/2a3f078d3755444b8777a0204e5f694a", "application/json", bytes.NewBuffer(requestBody))
+	response, responseErr := http.Post(ethRPC, "application/json", bytes.NewBuffer(requestBody))
 	if responseErr != nil {
 		fmt.Println(responseErr)
 	}
