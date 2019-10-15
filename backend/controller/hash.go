@@ -112,10 +112,7 @@ func getPendingTransaction(address string) uint64 {
 	var params = []interface{}{address, "latest"}
 	nonceDummy := &models.NonceStruct{}
 	err := models.GetDB().Table("nonce_structs").Where("address = ?", address).First(nonceDummy).Error
-	fmt.Println("INITIAL")
-	fmt.Println(nonceDummy)
 	if err != nil {
-		fmt.Println("There is an error")
 		if err == gorm.ErrRecordNotFound {
 			// params = append(params, "0x0")
 			payload := &Payload{
@@ -151,17 +148,14 @@ func getPendingTransaction(address string) uint64 {
 			nonceDummy.Address = address
 			nonceDummy.Nonce = hextodec(parsedResponse.Result)
 			models.GetDB().Create(nonceDummy)
-			fmt.Println(parsedResponse.Result)
+			fmt.Println("Propogating transaction with nonce %d\n", hextodec(parsedResponse.Result))
 			return hextodec(parsedResponse.Result)
 		}
 	}
 	//update the nonce
-	fmt.Println("BEFORE UPDATING:")
-	fmt.Println(nonceDummy)
 	nonceDummy.Nonce = nonceDummy.Nonce + uint64(1)
 	models.GetDB().Model(nonceDummy).Update("nonce", nonceDummy.Nonce)
-	fmt.Println("AFTER UPDATING:")
-	fmt.Println(nonceDummy)
+	fmt.Println("Propogating transaction with nonce %d\n", nonceDummy.Nonce)
 	return nonceDummy.Nonce
 }
 func getHash(payload *models.Payload, writer http.ResponseWriter) string {
