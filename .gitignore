@@ -62,6 +62,6 @@ typings/
 # Ignore build files
 dist/
 
-backend/
+backend/backend
 backend/sample.log
 backend/sample.pid
