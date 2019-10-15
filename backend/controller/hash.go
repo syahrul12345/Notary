@@ -66,7 +66,6 @@ func checkHashInDb(hash string) (bool, error) {
 	return true, nil
 
 }
-
 func sendSigned(hash string, incoming *models.SignedTx, writer http.ResponseWriter) {
 	requestBody, err := json.Marshal(incoming)
 	if err != nil {
@@ -111,38 +110,59 @@ func sendSigned(hash string, incoming *models.SignedTx, writer http.ResponseWrit
 
 func getPendingTransaction(address string) uint64 {
 	var params = []interface{}{address, "latest"}
-	// params = append(params, "0x0")
-	payload := &Payload{
-		JSONRPC: "2.0",
-		Method:  "eth_getTransactionCount",
-		Params:  params,
-		ID:      1,
-	}
-	requestBody, err := json.Marshal(payload)
-	// fmt.Println(requestBody)
+	nonceDummy := &models.NonceStruct{}
+	err := models.GetDB().Table("nonce_structs").Where("address = ?", address).First(nonceDummy).Error
+	fmt.Println("INITIAL")
+	fmt.Println(nonceDummy)
 	if err != nil {
-		fmt.Println(err)
-	}
-	response, responseErr := http.Post(ethRPC, "application/json", bytes.NewBuffer(requestBody))
-	if responseErr != nil {
-		fmt.Println(responseErr)
-	}
-	//close payload to prevent leakages
-	defer response.Body.Close()
+		fmt.Println("There is an error")
+		if err == gorm.ErrRecordNotFound {
+			// params = append(params, "0x0")
+			payload := &Payload{
+				JSONRPC: "2.0",
+				Method:  "eth_getTransactionCount",
+				Params:  params,
+				ID:      1,
+			}
+			requestBody, err := json.Marshal(payload)
+			// fmt.Println(requestBody)
+			if err != nil {
+				fmt.Println(err)
+			}
+			response, responseErr := http.Post(ethRPC, "application/json", bytes.NewBuffer(requestBody))
+			if responseErr != nil {
+				fmt.Println(responseErr)
+			}
+			//close payload to prevent leakages
+			defer response.Body.Close()
 
-	// read the response
-	body, bodyErr := ioutil.ReadAll(response.Body)
-	if bodyErr != nil {
-		fmt.Println("FAILED TO IO PARSE")
-	}
-	// parse the response
-	var parsedResponse = new(models.ParsedResponse)
+			// read the response
+			body, bodyErr := ioutil.ReadAll(response.Body)
+			if bodyErr != nil {
+				fmt.Println("FAILED TO IO PARSE")
+			}
+			// parse the response
+			var parsedResponse = new(models.ParsedResponse)
 
-	parsedErr := json.Unmarshal(body, &parsedResponse)
-	if parsedErr != nil {
-		fmt.Print(parsedErr)
+			parsedErr := json.Unmarshal(body, &parsedResponse)
+			if parsedErr != nil {
+				fmt.Print(parsedErr)
+			}
+			nonceDummy.Address = address
+			nonceDummy.Nonce = hextodec(parsedResponse.Result)
+			models.GetDB().Create(nonceDummy)
+			fmt.Println(parsedResponse.Result)
+			return hextodec(parsedResponse.Result)
+		}
 	}
-	return hextodec(parsedResponse.Result)
+	//update the nonce
+	fmt.Println("BEFORE UPDATING:")
+	fmt.Println(nonceDummy)
+	nonceDummy.Nonce = nonceDummy.Nonce + uint64(1)
+	models.GetDB().Model(nonceDummy).Update("nonce", nonceDummy.Nonce)
+	fmt.Println("AFTER UPDATING:")
+	fmt.Println(nonceDummy)
+	return nonceDummy.Nonce
 }
 func getHash(payload *models.Payload, writer http.ResponseWriter) string {
 	h := sha256.New()

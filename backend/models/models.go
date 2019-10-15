@@ -58,6 +58,12 @@ type HashStruct struct {
 	Hash string
 }
 
+//NonceStruct struct is a replacement for the nonce of the sending account
+type NonceStruct struct {
+	Address string
+	Nonce   uint64
+}
+
 //Sign the transaction
 func (incomingTx *Tx) Sign() *SignedTx {
 	err := godotenv.Load()

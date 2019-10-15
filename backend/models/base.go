@@ -32,7 +32,7 @@ func init() {
 	}
 
 	db = conn
-	db.Debug().AutoMigrate(&HashStruct{}) //Database migration
+	db.Debug().AutoMigrate(&HashStruct{}, &NonceStruct{}) //Database migration
 	//put in the idnexer to only index upon first launch of binary
 }
 
