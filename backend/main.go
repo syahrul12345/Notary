@@ -43,7 +43,7 @@ func serve() {
 	router.HandleFunc("/api/uploadHash", controller.UploadHash).Methods("POST")
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8000" //localhost
+		port = "9190" //localhost
 	}
 	router.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Print("web page loaded")
@@ -74,7 +74,7 @@ func serve() {
 		AllowCredentials: true,
 	})
 	handler := c.Handler(router)
-	fmt.Println("listening on server 8000")
+	fmt.Println("listening on server 9190")
 	err := http.ListenAndServe(":"+port, handler) //Launch the app, visit localhost:8000/api
 	if err != nil {
 		fmt.Print(err)

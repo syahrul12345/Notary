@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"github.com/jinzhu/gorm"
 )
 
 var (
@@ -33,13 +35,39 @@ var UploadHash = func(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	hash := getHash(payload, writer)
-	tx := txBuilder(hash, "eth_sendRawTransaction", writer)
-	signedTx := tx.Sign()
-	sendSigned(signedTx, writer)
+	//Check if the hash exists
+	exists, hashErr := checkHashInDb(hash)
+	if hashErr != nil {
+		fmt.Println(hashErr)
+		return
+	}
+	if !exists {
+		//hash doesnt exist
+		tx := txBuilder(hash, "eth_sendRawTransaction", writer)
+		signedTx := tx.Sign()
+		sendSigned(hash, signedTx, writer)
+		return
+	}
+	utils.Respond(writer, utils.Message(false, "Document already signed"))
 	// utils.Respond(writer, resp)
 }
 
-func sendSigned(incoming *models.SignedTx, writer http.ResponseWriter) {
+func checkHashInDb(hash string) (bool, error) {
+	hashStruct := &models.HashStruct{}
+	err := models.GetDB().Table("hash_structs").Where("hash = ?", hash).First(hashStruct).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			//hash doesnt exist
+			return false, nil
+		}
+		return true, err
+	}
+
+	return true, nil
+
+}
+
+func sendSigned(hash string, incoming *models.SignedTx, writer http.ResponseWriter) {
 	requestBody, err := json.Marshal(incoming)
 	if err != nil {
 		fmt.Println(err)
@@ -71,6 +99,10 @@ func sendSigned(incoming *models.SignedTx, writer http.ResponseWriter) {
 	} else {
 		resp := make(map[string]interface{})
 		resp["transactionHash"] = parsedResponse.Result
+		//sucesfully sent so we can sve to DB
+		hashStruct := &models.HashStruct{Hash: hash}
+		models.GetDB().Create(hashStruct)
+		fmt.Println("CREATED")
 		utils.Respond(writer, resp)
 		return
 	}

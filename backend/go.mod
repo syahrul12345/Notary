@@ -7,11 +7,12 @@ require (
 	github.com/aristanetworks/goarista v0.0.0-20191014074403-8d17c2d50f07 // indirect
 	github.com/elastic/gosigar v0.10.5 // indirect
 	github.com/ethereum/go-ethereum v1.9.6
-	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gorilla/mux v1.7.3
+	github.com/jinzhu/gorm v1.9.11
 	github.com/joho/godotenv v1.3.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/pkg/profile v1.2.1 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/sevlyar/go-daemon v0.1.5
 	github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570 // indirect

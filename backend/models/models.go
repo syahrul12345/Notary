@@ -53,6 +53,11 @@ type ParsedResponse struct {
 	Result  string
 }
 
+//HashStruct is the struct where the Hash is saved
+type HashStruct struct {
+	Hash string
+}
+
 //Sign the transaction
 func (incomingTx *Tx) Sign() *SignedTx {
 	err := godotenv.Load()
